@@ -1,0 +1,39 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>NP-likeness scorer</title>
+</head>
+<body>
+<p> Here will be the scorer</p>
+Load a SDF file
+
+
+<div>
+    <form method="POST" enctype="multipart/form-data" action="/">
+        <table>
+            <tr><td>SDF file to upload:</td><td><input type="file" name="file" /></td></tr>
+            <tr><td></td><td><input type="submit" value="Upload" /></td></tr>
+        </table>
+    </form>
+</div>
+
+<div>
+    <ul>
+        <li th:each="file : ${files}">
+            <a th:href="${file}" th:text="${file}" />
+        </li>
+    </ul>
+</div>
+
+<div th:if="${message}">
+    <h1 th:text="${message}"/>
+</div>
+
+
+<p>Get the file</p>
+<p>Do the calculations internally</p>
+Return the scores for all molecules in the original file (ID+ score)
+
+
+</body>
+</html>

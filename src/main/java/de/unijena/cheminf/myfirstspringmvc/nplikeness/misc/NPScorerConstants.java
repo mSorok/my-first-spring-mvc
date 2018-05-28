@@ -34,4 +34,7 @@ public final class NPScorerConstants {
     public static boolean EXTERNAL_NP_TRAINING_DATA = false;
 
 
+    public static final String MOL_NUMBER_IN_FILE = "MOL_NUMBER_IN_FILE";
+
+
 }

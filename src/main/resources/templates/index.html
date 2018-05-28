@@ -10,12 +10,13 @@
     <form method="POST" enctype="multipart/form-data" action="/">
         <table>
             <tr><td>SDF file to upload:</td><td><input type="file" name="file" /></td></tr>
-            <tr><td></td><td><input type="submit" value="Upload" /></td></tr>
+            <tr><td></td><td><input type="submit" value="Upload & start scorer" /></td></tr>
         </table>
     </form>
 </div>
 
 <div>
+    Uploaded files:
     <ul>
         <li th:each="file : ${files}">
             <a th:href="${file}" th:text="${file}" />
@@ -32,9 +33,17 @@
 </div>
 
 
-<p>Get the file</p>
-<p>Do the calculations internally</p>
-Return the scores for all molecules in the original file (ID+ score)
+
+<!--
+<div>
+    Scores:
+    <ul>
+        <li th:each="score : ${scores}">
+            <p th:text="${score}" />
+        </li>
+    </ul>
+</div>
+-->
 
 
 </body>

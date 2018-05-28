@@ -1,9 +1,14 @@
 package de.unijena.cheminf.myfirstspringmvc.controller;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.stream.Collectors;
 import java.io.File;
 
+import de.unijena.cheminf.myfirstspringmvc.nplikeness.NPWorker;
+import org.openscience.cdk.interfaces.IAtomContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -27,6 +32,8 @@ public class FileUploadController {
 
     private final StorageService storageService;
     private boolean returnedResults = false;
+
+    public ArrayList<String> moleculesWithScores = new ArrayList<String>();
 
     @Autowired
     public FileUploadController(StorageService storageService) {
@@ -78,24 +85,39 @@ public class FileUploadController {
 
         String loadedFile = "upload-dir/"+ file.getOriginalFilename();
 
-        InputParser inparser = new InputParser(loadedFile);
+        //InputParser inparser = new InputParser(loadedFile);
+       NPWorker worker = new NPWorker(loadedFile );
+
         //TODO replace by NPWorker
        redirectAttributes.addFlashAttribute("workerStarted",
                "NP-likeness scorer started");
-        inparser.doWorkForSpring();
+
+
         //TODO erase the message workerStarted
 
        //TODO print the results to the page /
+       worker.controlMolecules();
+       System.out.println(worker.getMoleculesWithScores());
+       ArrayList<String> newMoleculesToString = worker.getMoleculeString();
+
+       this.moleculesWithScores.addAll(newMoleculesToString);
 
 
-
-
-        //Do stuff with my file
-
-        return "redirect:/";//redirect to results page when finished //TODO later
+        return "redirect:/results";//redirect to results page when finished //TODO later
     }
 
-    @GetMapping("/wait")
+
+    @GetMapping("/results")
+    public String listScores(Model model) throws IOException {
+
+
+        model.addAttribute("scores", this.moleculesWithScores);
+        System.out.println(this.moleculesWithScores);
+
+        return "/results";
+    }
+
+    /*@GetMapping("/wait")
     public String letsWait(RedirectAttributes redirectAttributes){
 
         System.out.println("In wait 1");
@@ -109,8 +131,8 @@ public class FileUploadController {
 
        return "redirect:/results";
     }
-
-    @RequestMapping("/results")
+*/
+   /* @RequestMapping("/results")
     @ResponseBody
     public String postResults(RedirectAttributes redirectAttributes){
             System.out.println("\n\n Results \n\n\n");
@@ -121,7 +143,7 @@ public class FileUploadController {
 
     }
 
-
+*/
 
     @ExceptionHandler(StorageFileNotFoundException.class)
     public ResponseEntity<?> handleStorageFileNotFound(StorageFileNotFoundException exc) {

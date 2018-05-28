@@ -6,11 +6,38 @@
 <body>
 <h1>Natural Product likeness score calculator - results</h1>
 
+<!--
 
-<div th:if="${result}">
-    <h1 th:text="${result}"/>
+<div th:if="${scores}">
+
+    <h1 th:text="${scores}"/>
+</div>
+-->
+
+
+<!--<div th:if="${scores}">
+
+
+    <tr th:each="instance : ${scores.instanceHashtable }">
+        <td th:text="${scores.key}">keyvalue</td>
+        <td th:text="${scores.value.numOfData}">num</td>
+    </tr>
+
+</div>-->
+
+
+<div>
+    Scores in this session:
+    <ul>
+        <li th:each="score : ${scores}">
+            <p th:text="${score}" />
+        </li>
+    </ul>
 </div>
 
 
+<form action="/">
+    <input type="submit" value="Compute NP-likeness score for a new file" />
+</form>
 </body>
 </html>

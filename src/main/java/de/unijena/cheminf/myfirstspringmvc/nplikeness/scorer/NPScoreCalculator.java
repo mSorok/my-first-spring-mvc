@@ -26,6 +26,7 @@ import de.unijena.cheminf.myfirstspringmvc.nplikeness.misc.NPScorerConstants;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -131,14 +132,26 @@ public class NPScoreCalculator {
      * @throws IOException
      */
     public void process(File file, File outfile, File outFragmentsFile) {
-        System.out.println("im here 6-1");
-        createAllReaderWriters(file, outfile, outFragmentsFile);
-        System.out.println("im here 6-2");
-        iterate();
-        System.out.println("im here 6-3");
-        closeAllWriters();
-        System.out.println("im here 6-4");
 
+        createAllReaderWriters(file, outfile, outFragmentsFile);
+        iterate();
+        closeAllWriters();
+
+    }
+
+
+    public ArrayList<IAtomContainer> process(File file){
+
+        //creare reader
+        createSDFReader(file);
+        //iterate
+        System.out.println("I'm processing file");
+        ArrayList<IAtomContainer> scores = iterateSDFListOutput();
+
+        //return hashtable with scores and molecules
+
+
+        return scores;
     }
 
     private void createReaderWriter(File inFile, File outFile) {
@@ -160,6 +173,7 @@ public class NPScoreCalculator {
     private void createSDFReader(File sdfFile) {
         try {
             reader = new IteratingSDFReader(new FileInputStream(sdfFile), DefaultChemObjectBuilder.getInstance());
+            System.out.println("I'm creating SDF reader");
             reader.setSkip(true);
             // uuidScoreWriter = new BufferedWriter(new FileWriter(outFile.getParent() + File.separator + FilenameUtils.getBaseName(outFile.getCanonicalPath()) + ".txt"));
         } catch (FileNotFoundException ex) {
@@ -274,6 +288,54 @@ public class NPScoreCalculator {
         }
     }
 
+
+
+
+
+
+    private ArrayList<IAtomContainer> iterateSDFListOutput() {
+        int count = 1;
+
+        ArrayList<IAtomContainer> newScoresTable = new ArrayList<IAtomContainer>();
+
+        System.out.println("I am iterating in SDF file");
+        System.out.println(reader);
+
+        while (reader.hasNext()) {
+            System.out.println("I am iterating in SDF file - 2");
+            try {
+                IAtomContainer molecule = reader.next();
+                //String molId = molecule.getProperties().get("ID").toString() ;
+                //if( molId.isEmpty()){
+                //    molId = molecule.getID();
+                //}
+                Map properties = molecule.getProperties(); //the problem is here - the returned properties are empty!
+
+                //List<IAtomContainer> fragments = score(molecule);
+
+                molecule.setProperty(NPScorerConstants.MOL_NUMBER_IN_FILE,  Integer.toString(count) );
+
+                Double molScore = scoreAndReturn(molecule);
+
+
+                //molecule.setProperties(properties);
+                //System.out.println(molecule.getProperties());
+
+
+                newScoresTable.add(molecule);
+
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Logger.getLogger(NPScoreCalculator.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            count++;
+            System.out.println("I am iterating in SDF file - 3");
+        }
+        System.out.println(newScoresTable);
+        return newScoresTable;
+    }
+
     private String getSMILES(IAtomContainer mol) throws CDKException {
         CDKHydrogenAdder.getInstance(this.iChemObjectBuilder).addImplicitHydrogens(mol);
         return smilesGenerator.create(mol);
@@ -382,6 +444,33 @@ public class NPScoreCalculator {
         molecule.setProperty(NPScorerConstants.MOLECULE_ID, uuid);
         System.out.println(molecule.getProperties());
         return fragments;
+    }
+
+
+
+    public Double scoreAndReturn(IAtomContainer molecule) throws Exception {
+        String score;
+        String uuid;
+        List<IAtomContainer> fragments = new ArrayList<IAtomContainer>();
+        if (reconstructFragments) {
+            Map<String, List<IAtomContainer>> fragmentsWithScores = curateScoreAndReconstruct(molecule);
+
+            String uuidScore = extractScore(fragmentsWithScores);
+
+            score = getScore(uuidScore);
+            uuid = getUUID(uuidScore);
+            fragments = extractFragments(fragmentsWithScores);
+        } else {
+            String uuid_score = curateAndScore(molecule);
+            score = getScore(uuid_score);
+            uuid = getUUID(uuid_score);
+        }
+        //System.out.print("here is my score: ");
+        //System.out.println(score);
+        molecule.setProperty(NPScorerConstants.NATURAL_PRODUCT_LIKENESS_SCORE, score);
+        molecule.setProperty(NPScorerConstants.MOLECULE_ID, uuid);
+        System.out.println(molecule.getProperties());
+        return Double.parseDouble(score);
     }
 
     private String extractScore(Map<String, List<IAtomContainer>> fragmentsWithScores) {

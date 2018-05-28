@@ -4,9 +4,7 @@
     <title>NP-likeness scorer</title>
 </head>
 <body>
-<p> Here will be the scorer</p>
-Load a SDF file
-
+<h1>Natural Product likeness score calculator</h1>
 
 <div>
     <form method="POST" enctype="multipart/form-data" action="/">
@@ -25,8 +23,12 @@ Load a SDF file
     </ul>
 </div>
 
-<div th:if="${message}">
-    <h1 th:text="${message}"/>
+<div th:if="${uploadSuccessful}">
+    <h1 th:text="${uploadSuccessful}"/>
+</div>
+
+<div th:if="${workerStarted}">
+    <h1 th:text="${workerStarted}"/>
 </div>
 
 

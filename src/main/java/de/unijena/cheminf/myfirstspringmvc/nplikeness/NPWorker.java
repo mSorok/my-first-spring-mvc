@@ -144,7 +144,7 @@ public class NPWorker {
         for(IAtomContainer mol : this.moleculesWithScores){
             if( mol.getProperty("ID") == null ){
                 //the molecule has no ID - problem in the SDF file
-                mol.setProperty("ID", "Molecule ID not found, molecule number "+mol.getProperty("MOL_NUMBER_IN_FILE"));
+                mol.setProperty("ID", "Molecule ID not found, molecule number "+mol.getProperty("MOL_NUMBER_IN_FILE") + "from file "+ inFile.getName());
             }
 
             if (mol.getProperty("score") == null){

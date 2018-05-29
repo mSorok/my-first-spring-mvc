@@ -20,6 +20,9 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import org.springframework.validation.BindingResult;
+
+
 import de.unijena.cheminf.myfirstspringmvc.storage.StorageFileNotFoundException;
 import de.unijena.cheminf.myfirstspringmvc.storage.StorageService;
 
@@ -38,7 +41,6 @@ public class FileUploadController {
     @Autowired
     public FileUploadController(StorageService storageService) {
         this.storageService = storageService;
-        System.out.println("\n\n I'm in File Upload Controller!");
     }
 
     @GetMapping("/")
@@ -48,6 +50,8 @@ public class FileUploadController {
                 path -> MvcUriComponentsBuilder.fromMethodName(FileUploadController.class,
                         "serveFile", path.getFileName().toString()).build().toString())
                 .collect(Collectors.toList()));
+
+
 
         return "index";
     }
@@ -77,44 +81,52 @@ public class FileUploadController {
     public String launchNPScorerOnFile(@RequestParam("file") MultipartFile file,
                                    RedirectAttributes redirectAttributes) {
 
-        System.out.println( "\n" + file.getOriginalFilename() + "\n");
-       storageService.store(file);
-        redirectAttributes.addFlashAttribute("uploadSuccessful",
-                "Working on scoring file! " + file.getOriginalFilename() + "!");
+        if(!file.isEmpty()) {
+            storageService.store(file);
+            redirectAttributes.addFlashAttribute("uploadSuccessful",
+                    "Working on scoring file! " + file.getOriginalFilename() + "!");
 
 
-        String loadedFile = "upload-dir/"+ file.getOriginalFilename();
+            String loadedFile = "upload-dir/" + file.getOriginalFilename();
 
-        //InputParser inparser = new InputParser(loadedFile);
-       NPWorker worker = new NPWorker(loadedFile );
+            //InputParser inparser = new InputParser(loadedFile);
+            NPWorker worker = new NPWorker(loadedFile);
 
-        //TODO replace by NPWorker
-       redirectAttributes.addFlashAttribute("workerStarted",
-               "NP-likeness scorer started");
-
-
-        //TODO erase the message workerStarted
-
-       //TODO print the results to the page /
-       worker.controlMolecules();
-       System.out.println(worker.getMoleculesWithScores());
-       ArrayList<String> newMoleculesToString = worker.getMoleculeString();
-
-       this.moleculesWithScores.addAll(newMoleculesToString);
+            //TODO replace by NPWorker
+            redirectAttributes.addFlashAttribute("workerStarted",
+                    "NP-likeness scorer started");
 
 
-        return "redirect:/results";//redirect to results page when finished //TODO later
+            //TODO erase the message workerStarted
+
+            //TODO print the results to the page /
+            worker.controlMolecules();
+            System.out.println(worker.getMoleculesWithScores());
+            ArrayList<String> newMoleculesToString = worker.getMoleculeString();
+
+            this.moleculesWithScores.addAll(newMoleculesToString);
+
+
+            return "redirect:/results";//redirect to results page when finished //TODO later
+        }
+        else{
+
+            redirectAttributes.addFlashAttribute("noFileError",
+                    "You need to load a valid SDF file!");
+            return "redirect:/";
+
+        }
     }
 
 
-    @GetMapping("/results")
+    @GetMapping("results")
     public String listScores(Model model) throws IOException {
 
 
         model.addAttribute("scores", this.moleculesWithScores);
         System.out.println(this.moleculesWithScores);
 
-        return "/results";
+        return "results";
     }
 
     /*@GetMapping("/wait")

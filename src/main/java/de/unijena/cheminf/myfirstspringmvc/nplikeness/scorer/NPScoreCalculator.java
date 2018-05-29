@@ -469,7 +469,9 @@ public class NPScoreCalculator {
         //System.out.println(score);
         molecule.setProperty(NPScorerConstants.NATURAL_PRODUCT_LIKENESS_SCORE, score);
         molecule.setProperty(NPScorerConstants.MOLECULE_ID, uuid);
-        System.out.println(molecule.getProperties());
+        
+        score = score.replace(',', '.');
+
         return Double.parseDouble(score);
     }
 
@@ -477,6 +479,7 @@ public class NPScoreCalculator {
         String uuid_Score = "";
         if (fragmentsWithScores.keySet().size() == 1) {
             for (Entry entry : fragmentsWithScores.entrySet()) {
+
                 uuid_Score = (String) entry.getKey();
             }
         }

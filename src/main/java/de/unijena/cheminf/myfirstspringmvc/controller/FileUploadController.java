@@ -83,35 +83,50 @@ public class FileUploadController {
 
         if(!file.isEmpty()) {
             storageService.store(file);
-            redirectAttributes.addFlashAttribute("uploadSuccessful",
-                    "Working on scoring file! " + file.getOriginalFilename() + "!");
+            //redirectAttributes.addFlashAttribute("uploadSuccessful",
+            //       "Working on scoring file! " + file.getOriginalFilename() + "!");
 
 
             String loadedFile = "upload-dir/" + file.getOriginalFilename();
 
             NPWorker worker = new NPWorker(loadedFile);
 
-            redirectAttributes.addFlashAttribute("workerStarted",
-                    "NP-likeness scorer started");
+            boolean workerStarted = worker.startWorker();
+
+            if (workerStarted) {
+
+                redirectAttributes.addFlashAttribute("workerStarted",
+                        "NP-likeness scorer started");
 
 
+                worker.controlMolecules();
+                System.out.println(worker.getMoleculesWithScores());
+                ArrayList<String> newMoleculesToString = worker.getMoleculeString();
 
-            worker.controlMolecules();
-            System.out.println(worker.getMoleculesWithScores());
-            ArrayList<String> newMoleculesToString = worker.getMoleculeString();
-
-            this.moleculesWithScores.addAll(newMoleculesToString);
+                this.moleculesWithScores.addAll(newMoleculesToString);
+                System.out.println("I'm here!!!! ");
 
 
-            return "redirect:/results";//redirect to results page when finished
-        }
-        else{
+                return "redirect:/results";//redirect to results page when finished
+            } else {
+                storageService.deleteFile(file);
+                redirectAttributes.addFlashAttribute("badFileType",
+                        "Bad file type! Accepted formats: SDF, MOL & SMI (SMILES)");
+                return "redirect:/";
+            }
+
+        }else {
 
             redirectAttributes.addFlashAttribute("noFileError",
-                    "You need to load a valid SDF file!");
+                    "You need to load a file!");
+
+
             return "redirect:/";
 
         }
+
+
+
     }
 
 

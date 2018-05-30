@@ -77,6 +77,15 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
+    public void deleteFile(MultipartFile file){
+        try {
+            FileSystemUtils.deleteRecursively(this.rootLocation.resolve(file.getOriginalFilename()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
     public void init() {
         try {
             Files.createDirectory(rootLocation);

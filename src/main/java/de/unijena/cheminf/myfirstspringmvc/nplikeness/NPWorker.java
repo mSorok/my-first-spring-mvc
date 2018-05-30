@@ -52,21 +52,29 @@ public class NPWorker {
 
         inFile = file;
 
-        // check file type
-        //TODO check file format and do things accordingly!
         acceptFileFormat = acceptFile(loadedFile);
-        if(acceptFileFormat){
-
-        }
 
 
         //TODO options (add options later)
 
-        //todo start the worker and return molecule ids + scores (to be printed by the controller)
 
 
-        this.moleculesWithScores = doWork();
 
+
+
+    }
+
+    public boolean startWorker(){
+        // check file type
+        //TODO check file format and do things accordingly!
+
+        if(acceptFileFormat){
+            this.moleculesWithScores = doWork();
+            return true;
+        }
+        else{
+            return false;
+        }
 
     }
 
@@ -75,18 +83,18 @@ public class NPWorker {
 
 
 
-
-    private boolean acceptFile(String value) {
-        if (value.equalsIgnoreCase("sdf")) {
+    private boolean acceptFile(String filename) {
+        filename = filename.toLowerCase();
+        if (filename.endsWith("sdf")) {
             this.submittedFileFormat="sdf";
             return true;
-        } else if (value.equalsIgnoreCase("smi")) {
+        } else if (filename.endsWith("smi")) {
             this.submittedFileFormat="smi";
             return true;
-        } else if (value.equalsIgnoreCase("json")) {
+        } else if (filename.endsWith("json")) {
             return false;
         }
-        else if (value.equalsIgnoreCase("mol")) {
+        else if (filename.endsWith("mol")) {
             this.submittedFileFormat="mol";
             return true;
         }
@@ -120,9 +128,9 @@ public class NPWorker {
         }
 
 
-        System.out.println("Im in NPWorker - 1");
+
         ArrayList<IAtomContainer> molWithScores = passInputForScoreCalculation();
-        System.out.println("Im in NPWorker - 2");
+
         //printOutput();
 
 
@@ -132,10 +140,11 @@ public class NPWorker {
 
 
     public ArrayList<IAtomContainer> passInputForScoreCalculation() {
-
+        ArrayList<IAtomContainer> molWithScores = null;
         scorer = new NPScoreCalculator();
         scorer.setReconstructFragments(true);
-        ArrayList<IAtomContainer> molWithScores = scorer.process(this.inFile);
+
+        molWithScores = scorer.process(this.inFile, this.submittedFileFormat);
 
         return molWithScores;
 
@@ -149,16 +158,34 @@ public class NPWorker {
 
 
     public void controlMolecules(){
-        for(IAtomContainer mol : this.moleculesWithScores){
-            if( mol.getProperty("ID") == null ){
-                //the molecule has no ID - problem in the SDF file
-                mol.setProperty("ID", "Molecule ID not found, molecule number "+mol.getProperty("MOL_NUMBER_IN_FILE") + "from file "+ inFile.getName());
-            }
 
-            if (mol.getProperty("score") == null){
-                mol.setProperty("score", "Score was not computed");
-            }
+        if(submittedFileFormat.equals("sdf")) {
+            for (IAtomContainer mol : this.moleculesWithScores) {
+                if (mol.getProperty("ID") == null) {
+                    //the molecule has no ID - problem in the SDF file
+                    mol.setProperty("ID", "Molecule ID not found, molecule number " + mol.getProperty("MOL_NUMBER_IN_FILE") + "from file " + inFile.getName());
+                }
 
+                if (mol.getProperty("score") == null) {
+                    mol.setProperty("score", "Score was not computed");
+                }
+
+            }
+        }
+        else if(submittedFileFormat.equals("mol")){
+            for (IAtomContainer mol : this.moleculesWithScores) {
+
+                mol.setProperty("ID", "Molecule from file " + inFile.getName());
+
+
+                if (mol.getProperty("score") == null) {
+                    mol.setProperty("score", "Score was not computed");
+                }
+
+            }
+        }
+        else if(submittedFileFormat.equals("smi")){
+            //TODO
         }
 
 

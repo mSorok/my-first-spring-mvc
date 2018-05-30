@@ -59,13 +59,9 @@ public class NPScoreCalculator {
     private IChemObjectBuilder iChemObjectBuilder = null;
 
     public NPScoreCalculator() {
-        System.out.println("im here4-1");
         this.tableToLookUp = new SignatureTableLookUp();
-        System.out.println("im here4-2");
         this.smilesGenerator = SmilesGenerator.generic().aromatic();
-        System.out.println("im here4-3");
         this.iChemObjectBuilder = SilentChemObjectBuilder.getInstance();
-        System.out.println("im here4-4");
     }
 
     public NPScoreCalculator(int height) {
@@ -140,15 +136,32 @@ public class NPScoreCalculator {
     }
 
 
-    public ArrayList<IAtomContainer> process(File file){
+    public ArrayList<IAtomContainer> process(File file, String fileFormat){
+        ArrayList<IAtomContainer> scores = null;
 
-        //creare reader
-        createSDFReader(file);
-        //iterate
-        System.out.println("I'm processing file");
-        ArrayList<IAtomContainer> scores = iterateSDFListOutput();
+        if(fileFormat.equals("sdf")) {
 
-        //return hashtable with scores and molecules
+            //creare reader
+            createSDFReader(file);
+            //iterate
+
+            scores = iterateSDFListOutput();
+
+            //return hashtable with scores and molecules
+        }
+        else if(fileFormat.equals("mol")){
+            //creare reader
+            createSDFReader(file);
+            scores = iterateMOLListOutput(file);
+            //TODO
+
+        }
+        else if(fileFormat.equals("smi")){
+            createSMILESReader(file);
+            System.out.println("I'm processing SMILES file");
+            scores = iterateSMILESListOutput();
+
+        }
 
 
         return scores;
@@ -330,11 +343,47 @@ public class NPScoreCalculator {
                 Logger.getLogger(NPScoreCalculator.class.getName()).log(Level.SEVERE, null, ex);
             }
             count++;
-            System.out.println("I am iterating in SDF file - 3");
         }
         System.out.println(newScoresTable);
         return newScoresTable;
     }
+
+
+
+
+
+
+    private ArrayList<IAtomContainer> iterateMOLListOutput( File file) {
+
+        ArrayList<IAtomContainer> newScoresTable = new ArrayList<IAtomContainer>();
+
+        System.out.println("I am iterating in MOL file");
+        //TODO correct MOL reader problem here!
+
+        while (reader.hasNext()) {
+            try {
+                IAtomContainer molecule = reader.next();
+
+                Map properties = molecule.getProperties();
+
+
+                molecule.setProperty("ID", file.getName() );
+
+                Double molScore = scoreAndReturn(molecule);
+
+
+                newScoresTable.add(molecule);
+
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Logger.getLogger(NPScoreCalculator.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        System.out.println(newScoresTable);
+        return newScoresTable;
+    }
+
 
     private String getSMILES(IAtomContainer mol) throws CDKException {
         CDKHydrogenAdder.getInstance(this.iChemObjectBuilder).addImplicitHydrogens(mol);
@@ -385,6 +434,63 @@ public class NPScoreCalculator {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+
+
+    private ArrayList<IAtomContainer> iterateSMILESListOutput() {
+        //TODO - to finish correcting this function!!!
+        //blah (test with testSMILES.smi)
+        System.out.println("iterating smiles");
+        ArrayList<IAtomContainer> newScoresTable = new ArrayList<IAtomContainer>();
+        int count = 1;
+        String line;
+
+
+        try {
+            while ((line = smilesReader.readLine()) != null) {
+                String smiles_names = line;
+                try {
+                    String[] splitted = smiles_names.split("\\s+"); //splitting the canonical smiles format: SMILES \s mol name
+                    SmilesParser sp = new SmilesParser(DefaultChemObjectBuilder.getInstance());
+
+                    IAtomContainer molecule = null;
+                    try {
+                        molecule = sp.parseSmiles(splitted[0]);
+                        Map properties = molecule.getProperties();
+
+                        //List<IAtomContainer> fragments = score(molecule);
+
+                        molecule.setProperty(NPScorerConstants.MOL_NUMBER_IN_FILE,  Integer.toString(count) );
+                        molecule.setProperty("ID", splitted[1]);
+
+                        Double molScore = scoreAndReturn(molecule);
+
+
+                        //molecule.setProperties(properties);
+                        //System.out.println(molecule.getProperties());
+
+
+                        newScoresTable.add(molecule);
+                    }catch(InvalidSmilesException e){
+                        e.printStackTrace();
+                        smilesReader.skip(count-1);
+                    }
+
+                } catch (InvalidSmilesException ex) {
+                    Logger.getLogger(NPScoreCalculator.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                count++;
+            }
+            smilesReader.close();
+        } catch (IOException  e) {
+            e.printStackTrace();
+        }
+
+        return newScoresTable;
     }
 
     public void storeJSONData(String smiles, String score, List<IAtomContainer> fragments){
@@ -469,7 +575,7 @@ public class NPScoreCalculator {
         //System.out.println(score);
         molecule.setProperty(NPScorerConstants.NATURAL_PRODUCT_LIKENESS_SCORE, score);
         molecule.setProperty(NPScorerConstants.MOLECULE_ID, uuid);
-        
+
         score = score.replace(',', '.');
 
         return Double.parseDouble(score);

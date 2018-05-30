@@ -89,17 +89,13 @@ public class FileUploadController {
 
             String loadedFile = "upload-dir/" + file.getOriginalFilename();
 
-            //InputParser inparser = new InputParser(loadedFile);
             NPWorker worker = new NPWorker(loadedFile);
 
-            //TODO replace by NPWorker
             redirectAttributes.addFlashAttribute("workerStarted",
                     "NP-likeness scorer started");
 
 
-            //TODO erase the message workerStarted
 
-            //TODO print the results to the page /
             worker.controlMolecules();
             System.out.println(worker.getMoleculesWithScores());
             ArrayList<String> newMoleculesToString = worker.getMoleculeString();
@@ -107,7 +103,7 @@ public class FileUploadController {
             this.moleculesWithScores.addAll(newMoleculesToString);
 
 
-            return "redirect:/results";//redirect to results page when finished //TODO later
+            return "redirect:/results";//redirect to results page when finished
         }
         else{
 

@@ -36,6 +36,7 @@ public class NPWorker {
     File inFile;
 
     private boolean acceptFileFormat = false;
+    private String submittedFileFormat ;
 
 
 
@@ -52,6 +53,7 @@ public class NPWorker {
         inFile = file;
 
         // check file type
+        //TODO check file format and do things accordingly!
         acceptFileFormat = acceptFile(loadedFile);
         if(acceptFileFormat){
 
@@ -76,10 +78,16 @@ public class NPWorker {
 
     private boolean acceptFile(String value) {
         if (value.equalsIgnoreCase("sdf")) {
+            this.submittedFileFormat="sdf";
             return true;
         } else if (value.equalsIgnoreCase("smi")) {
+            this.submittedFileFormat="smi";
             return true;
         } else if (value.equalsIgnoreCase("json")) {
+            return false;
+        }
+        else if (value.equalsIgnoreCase("mol")) {
+            this.submittedFileFormat="mol";
             return true;
         }
 
@@ -178,4 +186,11 @@ public class NPWorker {
         return stringMolList;
     }
 
+    public String getSubmittedFileFormat() {
+        return submittedFileFormat;
+    }
+
+    public void setSubmittedFileFormat(String submittedFileFormat) {
+        this.submittedFileFormat = submittedFileFormat;
+    }
 }

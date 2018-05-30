@@ -10,13 +10,13 @@
 <div>
     <form method="POST" enctype="multipart/form-data" action="/">
         <table>
-            <tr><td>SDF file to upload:</td><td><input type="file" name="file" /></td></tr>
+            <tr><td>SDF file to upload <small>(Accepted formats: SDF, MOL, SMILES)</small>:</td><td><input type="file" name="file" /></td></tr>
             <tr><td></td><td><input type="submit" value="Upload & start scorer" /></td></tr>
         </table>
     </form>
 </div>
 
-<div>
+<div th:if="${not #lists.isEmpty(files)}">
     Uploaded files:
     <ul>
         <li th:each="file : ${files}">

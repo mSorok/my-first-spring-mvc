@@ -358,7 +358,6 @@ public class NPScoreCalculator {
         ArrayList<IAtomContainer> newScoresTable = new ArrayList<IAtomContainer>();
 
         System.out.println("I am iterating in MOL file");
-        //TODO correct MOL reader problem here!
 
         while (reader.hasNext()) {
             try {

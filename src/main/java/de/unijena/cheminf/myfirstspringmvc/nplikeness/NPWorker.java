@@ -85,19 +85,25 @@ public class NPWorker {
 
     private boolean acceptFile(String filename) {
         filename = filename.toLowerCase();
-        if (filename.endsWith("sdf")) {
+        if (filename.endsWith("sdf") || filename.toLowerCase().contains("sdf".toLowerCase())) {
             this.submittedFileFormat="sdf";
             return true;
-        } else if (filename.endsWith("smi")) {
+        } else if (filename.endsWith("smi")  ||
+                filename.toLowerCase().contains("smi".toLowerCase()) ||
+                filename.toLowerCase().contains("smiles".toLowerCase()) ||
+                filename.toLowerCase().contains("smile".toLowerCase())) {
             this.submittedFileFormat="smi";
             return true;
         } else if (filename.endsWith("json")) {
             return false;
         }
-        else if (filename.endsWith("mol")) {
+        else if (filename.endsWith("mol")  ||
+                filename.toLowerCase().contains("mol".toLowerCase())
+                || filename.toLowerCase().contains("molfile".toLowerCase())) {
             this.submittedFileFormat="mol";
             return true;
         }
+
 
         return false;
     }
